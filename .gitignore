@@ -23,3 +23,5 @@ run.sh
 .env
 logfile.log
 migrations/*
+venv/
+.venv/
