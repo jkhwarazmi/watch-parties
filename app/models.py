@@ -21,6 +21,11 @@ PROFILE_COLOURS = {
 }
 
 
+def utc_now():
+    """Get the current UTC time when a row is written, not at import."""
+    return datetime.now(timezone.utc)
+
+
 @login.user_loader
 def load_user(id):
     """Load the user by ID."""
@@ -42,8 +47,7 @@ class User(db.Model):
     # Nullable to allow for deletion
     password_hash = db.Column(db.String(128))
 
-    created_at = db.Column(db.DateTime, default=datetime.now(
-        timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
     deleted_at = db.Column(db.DateTime, default=None, index=True)
     profile_colour = db.Column(db.String(7), default=lambda: choice(
         list(PROFILE_COLOURS.keys())), nullable=False)
@@ -94,8 +98,7 @@ class WatchParty(db.Model):
     description = db.Column(db.String(500))
     location = db.Column(db.String(100))
     start_time = db.Column(db.DateTime, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc),
-                           nullable=False)
+    updated_at = db.Column(db.DateTime, default=utc_now, nullable=False)
     created_by = db.Column(
         db.Integer, db.ForeignKey("user.id"), nullable=False)
     deleted_at = db.Column(db.DateTime, default=None, index=True)
@@ -119,8 +122,7 @@ class WatchPartyUser(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     watch_party_id = db.Column(db.Integer, db.ForeignKey(
         "watch_party.id"), nullable=False)
-    joined_at = db.Column(db.DateTime, default=datetime.now(
-        timezone.utc), nullable=False)
+    joined_at = db.Column(db.DateTime, default=utc_now, nullable=False)
     rating = db.Column(db.Integer, default=None)
 
 
@@ -132,8 +134,8 @@ class Comment(db.Model):
     watch_party_id = db.Column(db.Integer, db.ForeignKey(
         "watch_party.id"), nullable=False)
     content = db.Column(db.String(500), nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.now(
-        timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now,
+                           nullable=False)
     deleted_at = db.Column(db.DateTime, default=None, index=True)
 
     reactions = db.relationship(

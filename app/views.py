@@ -5,7 +5,7 @@ from flask import jsonify, Response
 from app import app, db, models
 from flask_login import login_required, current_user, logout_user
 import requests
-from sqlalchemy import func, case, and_
+from sqlalchemy import func, case, and_, cast, Integer
 from datetime import datetime, timezone, date, time
 from random import sample
 from decimal import Decimal, ROUND_HALF_UP
@@ -41,8 +41,8 @@ def index():
 
     # Get next movie details
     if next:
-        url = f"""https://api.themoviedb.org/3/movie/
-            {next.movie_id}?language=en-US"""
+        url = (f"https://api.themoviedb.org/3/movie/{next.movie_id}"
+               "?language=en-US")
         next_movie = requests.get(url, headers=headers).json()
         next_owner = models.User.query.filter(
             models.User.id == next.created_by).first()
@@ -279,10 +279,11 @@ def party(url):
                 case((models.CommentReaction.is_like.is_(False), 1))
             ).label("dislikes"),
             # Check if current user has reacted
+            # Cast to int since Postgres can't take the max of a boolean
             func.max(
                 case(
                     (models.CommentReaction.user_id == current_user.id,
-                    models.CommentReaction.is_like)
+                     cast(models.CommentReaction.is_like, Integer))
                 )
             ).label("user_reaction"),
             # Check if user can edit (is comment owner)
@@ -587,7 +588,7 @@ def comment(url):
     return redirect(url_for("party", url=wp.url))
 
 
-@app.route("/party/vote/<url>/<id>", methods=["POST"])
+@app.route("/party/vote/<url>/<int:id>", methods=["POST"])
 @login_required
 def vote(url, id):
     """React to a comment in a Watch Party."""
@@ -683,7 +684,7 @@ def vote(url, id):
     }), 200
 
 
-@app.route("/party/comment/edit/<url>/<id>", methods=["POST"])
+@app.route("/party/comment/edit/<url>/<int:id>", methods=["POST"])
 @login_required
 def edit_comment(url, id):
     """Edit a comment in a Watch Party."""
@@ -768,7 +769,7 @@ def edit_comment(url, id):
         }), 200
 
 
-@app.route("/party/comment/delete/<url>/<id>", methods=["POST"])
+@app.route("/party/comment/delete/<url>/<int:id>", methods=["POST"])
 @login_required
 def delete_comment(url, id):
     """Delete a comment in a Watch Party."""
