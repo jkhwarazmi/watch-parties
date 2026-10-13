@@ -1,0 +1,22 @@
+# Secrets are passed in at runtime, never baked into the image
+.env
+.env.*
+
+# Local only files
+.git
+.gitignore
+.gcloudignore
+.dockerignore
+Dockerfile
+*.db
+logfile.log*
+migrations/
+venv/
+.venv/
+**/__pycache__
+*.py[cod]
+.DS_Store
+.vscode/
+*.docx
+*.pdf
+*.md

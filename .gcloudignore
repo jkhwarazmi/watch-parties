@@ -1,0 +1,6 @@
+# Files not uploaded to Cloud Build by gcloud run deploy --source
+#!include:.gitignore
+.git
+*.db
+*.docx
+*.pdf

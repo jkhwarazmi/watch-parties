@@ -25,3 +25,4 @@ logfile.log
 migrations/*
 venv/
 .venv/
+logfile.log.*

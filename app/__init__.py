@@ -5,11 +5,18 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
+import sys
 from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 app.config.from_object("config")
+
+# Trust the HTTPS headers from Cloud Run's proxy
+if app.config["PRODUCTION"]:
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
 csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
 
@@ -25,7 +32,12 @@ from app.auth import auth
 
 app.register_blueprint(auth)
 
-handler = RotatingFileHandler("logfile.log", maxBytes=1000000, backupCount=1)
+# Cloud Run collects stdout, so only log to a file when running locally
+if app.config["PRODUCTION"]:
+    handler = logging.StreamHandler(sys.stdout)
+else:
+    handler = RotatingFileHandler(
+        "logfile.log", maxBytes=1000000, backupCount=1)
 handler.setLevel(logging.DEBUG)
 handler.setFormatter(logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
